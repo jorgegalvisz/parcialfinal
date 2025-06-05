@@ -1,86 +1,11 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8" />
-<title>SimonDice - Dos Jugadores</title>
-<script src="/socket.io/socket.io.js"></script>
-<link rel="stylesheet" href="estilos.css" />
-</head>
-<body>
-  <div class="container">
-    <h1>🎮 Juego SimonDice</h1>
-    <div class="info-box">
-      <div id="mensaje">Esperando el patrón...</div>
-      <div id="patron"></div>
-      <p class="jugador">Jugador 2 (PC): Usa las flechas ↑ ↓ ← → para responder</p>
-    </div>
-  </div>
+<script>
+  async function cargarDatos() {
+    const res = await fetch("/api/datos");
+    const datos = await res.json();
 
-  <script>
-    const socket = io();
-    let jugador1 = prompt("Ingresa el nombre del Jugador 1 (Arduino):");
-    let jugador2 = prompt("Ingresa el nombre del Jugador 2 (Teclado PC):");
-    let turnoJugador2 = false;
+    // Muestra los datos en pantalla
+    console.log(datos);
+  }
 
-    const traduccion = {
-      UP: "ARRIBA",
-      DOWN: "ABAJO",
-      LEFT: "IZQUIERDA",
-      RIGHT: "DERECHA"
-    };
-
-    socket.emit("nombres", { jugador1, jugador2 });
-
-    socket.on("patron", (patron) => {
-      document.getElementById("mensaje").textContent = "¡Prepárense!";
-      document.getElementById("patron").textContent = "";
-      setTimeout(() => {
-        document.getElementById("mensaje").textContent = "¡Miren el patrón!";
-        const patronTraducido = patron.map(d => traduccion[d] || d);
-        document.getElementById("patron").textContent = patronTraducido.join(" ➜ ");
-
-        let tiempoVisible = 2000 + patron.length * 500;
-        setTimeout(() => {
-          document.getElementById("mensaje").textContent = "Jugador 1 (Arduino) está respondiendo...";
-          document.getElementById("patron").textContent = "";
-        }, tiempoVisible);
-      }, 2000);
-    });
-
-    socket.on("turno-jugador2", () => {
-      turnoJugador2 = true;
-      document.getElementById("mensaje").textContent = "¡Es tu turno, Jugador 2! Usa las flechas.";
-    });
-
-    document.addEventListener("keydown", (e) => {
-      if (!turnoJugador2) return;
-
-      const teclas = {
-        ArrowUp: "UP",
-        ArrowDown: "DOWN",
-        ArrowLeft: "LEFT",
-        ArrowRight: "RIGHT"
-      };
-      if (teclas[e.key]) {
-        console.log("Jugador 2 presionó:", teclas[e.key]);
-        socket.emit("jugada", { jugador: jugador2, respuesta: teclas[e.key] });
-      }
-    });
-
-    socket.on("ganador", (g) => {
-      alert(`🎉 ¡Ganó ${g}!`);
-      location.reload(); // 🔥 Reinicia para pedir nombres otra vez
-    });
-
-    socket.on("ambos-correcto", (nivel) => {
-      alert(`✅ ¡Ambos acertaron! Siguiente nivel: ${nivel}`);
-      location.reload(); // 🔥 Reinicia para pedir nombres otra vez
-    });
-
-    socket.on("ninguno", (nivel) => {
-      alert(`❌ Nadie acertó. El nivel se mantiene en: ${nivel}`);
-      location.reload(); // 🔥 Reinicia para pedir nombres otra vez
-    });
-  </script>
-</body>
-</html>
+  cargarDatos();
+</script>
